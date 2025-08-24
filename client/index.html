@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time Chat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script type="module" src="./js/app.js"></script>
+</head>
+<body class="bg-gray-100 h-screen flex flex-col">
+  <!-- Landing -->
+  <div id="landing" class="flex flex-col items-center justify-center h-full p-4">
+    <h1 class="text-3xl font-bold mb-4">Welcome to Chat</h1>
+    <input id="username" class="border p-2 mb-2 w-full max-w-xs rounded" placeholder="Enter username" aria-label="Username">
+    <button id="create-btn" class="bg-blue-500 text-white p-2 mb-2 w-full max-w-xs rounded">Create Room</button>
+    <button id="join-btn" class="bg-green-500 text-white p-2 w-full max-w-xs rounded">Join Room</button>
+    <div id="join-form" class="hidden flex flex-col mt-4 w-full max-w-xs">
+      <input id="room-code" class="border p-2 mb-2 rounded" placeholder="Enter room code" aria-label="Room code">
+      <button id="enter-room" class="bg-green-500 text-white p-2 rounded">Enter</button>
+    </div>
+  </div>
+
+  <!-- Chat Room -->
+  <div id="chat" class="hidden flex flex-col h-full">
+    <header class="bg-blue-500 text-white p-4 flex justify-between items-center">
+      <h2 id="room-title" class="text-xl">Room: </h2>
+      <div class="flex items-center">
+        <span id="room-code-display" class="mr-2">Code: </span>
+        <button id="copy-link" class="bg-white text-blue-500 px-2 py-1 rounded">Copy Link</button>
+      </div>
+    </header>
+    <div class="flex flex-1 overflow-hidden">
+      <aside class="w-1/4 bg-gray-200 p-4 overflow-y-auto hidden md:block">
+        <h3 class="font-bold mb-2">Members</h3>
+        <ul id="members-list" class="list-disc pl-4"></ul>
+      </aside>
+      <main class="flex-1 flex flex-col">
+        <div id="messages" class="flex-1 p-4 overflow-y-auto bg-white" aria-live="polite"></div>
+        <div id="typing-indicator" class="p-2 text-gray-500 bg-gray-100"></div>
+        <form id="message-form" class="p-4 bg-white flex border-t">
+          <textarea id="message-input" class="flex-1 border p-2 rounded resize-none" rows="1" placeholder="Type a message..." aria-label="Message input"></textarea>
+          <button type="submit" class="bg-blue-500 text-white px-4 ml-2 rounded">Send</button>
+        </form>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
