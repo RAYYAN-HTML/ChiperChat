@@ -1,5 +1,4 @@
-// server/socket.js
-const rooms = require('./rooms');
+const rooms = require('./rooms'); // Correct path for rooms.js in server/ directory
 const { sanitize, generateId } = require('./utils');
 
 function initSocket(io) {
@@ -76,7 +75,7 @@ function initSocket(io) {
         if (!room.rateLimits.has(socket.id)) room.rateLimits.set(socket.id, []);
         const now = Date.now();
         const recent = room.rateLimits.get(socket.id).filter((ts) => now - ts < 3000);
-        room.rateLimits.set(socket.id, recent); // Clean up old timestamps
+        room.rateLimits.set(socket.id, recent);
         if (recent.length >= 5) return;
         recent.push(now);
         room.rateLimits.set(socket.id, recent);
@@ -124,14 +123,13 @@ function initSocket(io) {
           io.to(currentRoom).emit('room-state', { users: usersList });
           io.to(currentRoom).emit('typing', { users: Array.from(room.typing) });
 
-          // Delay room deletion to allow reconnection
           if (room.users.size === 0) {
             setTimeout(() => {
               if (rooms.has(currentRoom) && rooms.get(currentRoom).users.size === 0) {
                 rooms.delete(currentRoom);
                 console.log(`Room ${currentRoom} deleted`);
               }
-            }, 10000); // 10-second delay
+            }, 10000);
           }
         }
       } catch (err) {

@@ -21,8 +21,6 @@
   },
   "files": [
     "server.js",
-    "server/*.js",
-    "rooms.js",
-    "utils.js"
+    "server/*.js"
   ]
 }
