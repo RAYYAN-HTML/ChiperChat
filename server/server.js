@@ -5,22 +5,17 @@ const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http, {
   cors: {
-    origin: 'https://chiperchat.netlify.app',
-    methods: ['GET', 'POST'],
-    credentials: true
+    origin: 'https://chiperchat.netlify.app/', // Replace with your frontend URL
+    methods: ['GET', 'POST']
   },
-  transports: ['websocket', 'polling'],
+  transports: ['polling'],
   allowEIO3: true
 });
 const cors = require('cors');
 const { generateId } = require('./utils');
 const initSocket = require('./socket');
-const rooms = require('./rooms'); // Keep your existing rooms.js
 
-app.use(cors({ 
-  origin: 'https://chiperchat.netlify.app',
-  credentials: true 
-}));
+app.use(cors({ origin: 'https://chiperchat.netlify.app/' }));
 app.use(express.json());
 
 initSocket(io);
@@ -37,25 +32,4 @@ app.get('/create-room', async (req, res) => {
   }
 });
 
-// ADD THIS ENDPOINT FOR ROOM VALIDATION
-app.get('/validate-room/:roomId', (req, res) => {
-  try {
-    const roomId = req.params.roomId;
-    const exists = rooms.has(roomId);
-    console.log(`Room validation requested for: ${roomId}, exists: ${exists}`);
-    res.json({ exists });
-  } catch (err) {
-    console.error('Validate-room error:', err);
-    res.status(500).json({ error: 'Failed to validate room' });
-  }
-});
-
-const PORT = process.env.PORT || 3001;
-
-if (require.main === module) {
-  http.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
-
-module.exports = http;
+module.exports = app;
