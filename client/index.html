@@ -6,7 +6,7 @@
   <title>ChiperChat</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-  <script type="module" src="./js/app.js"></script>
+  <script src="./js/app.js"></script> <!-- Remove type="module" -->
 </head>
 <body class="bg-gray-100 h-screen flex flex-col">
   <!-- Landing -->
@@ -15,9 +15,9 @@
     <input id="username" class="border p-2 mb-2 w-full max-w-xs rounded" placeholder="Enter username" aria-label="Username">
     <button id="create-btn" class="bg-blue-500 text-white p-2 mb-2 w-full max-w-xs rounded">Create Room</button>
     <button id="join-btn" class="bg-green-500 text-white p-2 w-full max-w-xs rounded">Join Room</button>
-    <div id="join-form" class="hidden flex flex-col mt-4 w-full max-w-xs">
+    <div id="join-form" class="hidden mt-4 w-full max-w-xs">
       <input id="room-code" class="border p-2 mb-2 rounded" placeholder="Enter room code" aria-label="Room code">
-      <button id="enter-room" class="bg-green-500 text-white p-2 rounded">Enter</button>
+      <button id="enter-room" class="bg-green-500 text-white p-2 rounded w-full">Enter</button>
     </div>
   </div>
 

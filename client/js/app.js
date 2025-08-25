@@ -1,4 +1,6 @@
-const backendURL = location.hostname === 'localhost' || location.port ? 'http://localhost:3000' : 'https://chiper-chat.vercel.app/'; // Replace with your production backend URL
+const backendURL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') 
+  ? 'http://localhost:3000' 
+  : 'https://chiper-chat.vercel.app';
 
 let socket;
 let roomId;
@@ -8,14 +10,25 @@ let isTyping = false;
 let typingTimer;
 
 function connectSocket() {
+  console.log('Connecting to:', backendURL);
   socket = io(backendURL, {
     reconnection: true,
-    transports: ['polling'],
-    polling: { extraHeaders: {}, delay: 2000 }
+    transports: ['websocket', 'polling'],
+    withCredentials: true
   });
 
   socket.on('connect', () => {
+    console.log('Connected to server');
     socket.emit('join-room', { roomId, username });
+  });
+
+  socket.on('connect_error', (error) => {
+    console.error('Connection error:', error);
+    alert('Failed to connect to server. Please refresh.');
+  });
+
+  socket.on('disconnect', (reason) => {
+    console.log('Disconnected:', reason);
   });
 
   socket.on('username-changed', ({ newUsername, reason }) => {
@@ -42,11 +55,15 @@ function connectSocket() {
     appendMessage(text, true);
   });
 
-  socket.on('typing', ({ username: typer, isTyping }) => {
-    if (isTyping) {
-      typingUsers.add(typer);
-    } else {
-      typingUsers.delete(typer);
+  socket.on('typing', (data) => {
+    if (data.users) {
+      typingUsers = new Set(data.users);
+    } else if (data.username !== undefined) {
+      if (data.isTyping) {
+        typingUsers.add(data.username);
+      } else {
+        typingUsers.delete(data.username);
+      }
     }
     updateTyping();
   });
@@ -58,7 +75,7 @@ function initChat() {
   const copyBtn = document.getElementById('copy-link');
 
   copyBtn.onclick = () => {
-    const link = `${location.origin}/room/${roomId}`;
+    const link = `${location.origin}${location.pathname}`;
     navigator.clipboard.writeText(link).then(() => {
       alert('Link copied to clipboard!');
     }).catch(() => {
@@ -80,7 +97,7 @@ function initChat() {
         isTyping = false;
         socket.emit('typing', false);
       }
-    }, 3000); // Debounce stop typing
+    }, 3000);
   });
 
   form.onsubmit = (e) => {
@@ -99,7 +116,7 @@ function initChat() {
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      form.onsubmit(e);
+      form.dispatchEvent(new Event('submit'));
     }
   });
 }
@@ -117,7 +134,12 @@ function updateTyping() {
 
 function appendMessage(text, isSystem) {
   const div = document.createElement('div');
-  div.classList.add('mb-2', isSystem ? 'text-gray-500 italic text-center' : 'text-black');
+  div.classList.add('mb-2');
+  if (isSystem) {
+    div.classList.add('text-gray-500', 'italic', 'text-center');
+  } else {
+    div.classList.add('text-black');
+  }
   div.textContent = text;
   const msgs = document.getElementById('messages');
   msgs.appendChild(div);
@@ -131,6 +153,11 @@ function initLanding() {
   const joinForm = document.getElementById('join-form');
   const roomCode = document.getElementById('room-code');
   const enterBtn = document.getElementById('enter-room');
+
+  const savedUsername = localStorage.getItem('username');
+  if (savedUsername) {
+    usernameInput.value = savedUsername;
+  }
 
   createBtn.onclick = async () => {
     username = usernameInput.value.trim();
@@ -158,27 +185,35 @@ function initLanding() {
     localStorage.setItem('username', username);
     location.href = `/room/${code}`;
   };
+
+  roomCode.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      enterBtn.click();
+    }
+  });
 }
 
 function init() {
   const path = location.pathname;
   if (path.startsWith('/room/')) {
-    roomId = path.split('/room/')[1].split('/')[0];
+    roomId = path.split('/room/')[1];
     document.getElementById('landing').classList.add('hidden');
     document.getElementById('chat').classList.remove('hidden');
     document.getElementById('room-title').textContent = `Room: ${roomId}`;
     document.getElementById('room-code-display').textContent = `Code: ${roomId}`;
+    
     username = localStorage.getItem('username');
     if (!username) {
       username = prompt('Enter your username:');
-      if (!username?.trim()) {
+      if (!username || !username.trim()) {
         location.href = '/';
         return;
       }
-      localStorage.setItem('username', username.trim());
-    } else {
       username = username.trim();
+      localStorage.setItem('username', username);
     }
+    
     connectSocket();
     initChat();
   } else {
@@ -186,4 +221,8 @@ function init() {
   }
 }
 
-init();
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
