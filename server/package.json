@@ -4,7 +4,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "vercel-build": "echo 'Build complete'"
+    "vercel-build": "npm install"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -20,7 +20,9 @@
     "node": "18.x"
   },
   "files": [
+    "server.js",
     "server/*.js",
-    "server.js"
+    "rooms.js",
+    "utils.js"
   ]
 }
