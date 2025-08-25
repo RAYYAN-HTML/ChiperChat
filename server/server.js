@@ -16,7 +16,7 @@ const cors = require('cors');
 const { generateId } = require('./utils');
 const initSocket = require('./socket');
 
-// Replace rooms import with direct initialization
+// Initialize rooms directly (no external file needed)
 const rooms = new Map();
 
 app.use(cors({ 

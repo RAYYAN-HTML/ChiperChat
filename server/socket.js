@@ -1,8 +1,8 @@
 // server/socket.js
-// Replace rooms import with direct initialization
-const rooms = new Map();
-
 const { sanitize, generateId } = require('./utils');
+
+// Initialize rooms directly (no external file needed)
+const rooms = new Map();
 
 function initSocket(io) {
   io.on('connection', (socket) => {
@@ -77,12 +77,10 @@ function initSocket(io) {
         const room = rooms.get(currentRoom);
         const now = Date.now();
         
-        // Initialize if not exists
         if (!room.rateLimits.has(socket.id)) {
           room.rateLimits.set(socket.id, []);
         }
         
-        // Clean old timestamps and check rate limit
         const recentMessages = room.rateLimits.get(socket.id).filter(
           ts => now - ts < 3000
         );
@@ -92,7 +90,6 @@ function initSocket(io) {
           return;
         }
         
-        // Add current timestamp
         recentMessages.push(now);
         room.rateLimits.set(socket.id, recentMessages);
         
