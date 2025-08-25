@@ -1,4 +1,4 @@
-const backendURL = location.hostname === 'localhost' || location.port ? 'http://localhost:3000' : 'https://chiper-chat.vercel.app/';
+const backendURL = location.hostname === 'localhost' || location.port ? 'http://localhost:3000' : 'https://chiper-chat.vercel.app/'; // Replace with your production backend URL
 
 let socket;
 let roomId;
@@ -52,68 +52,6 @@ function connectSocket() {
   });
 }
 
-function init() {
-  const path = location.pathname;
-  if (path.startsWith('/room/')) {
-    roomId = path.split('/room/')[1].split('/')[0];
-    document.getElementById('landing').classList.add('hidden');
-    document.getElementById('chat').classList.remove('hidden');
-    document.getElementById('room-title').textContent = `Room: ${roomId}`;
-    document.getElementById('room-code-display').textContent = `Code: ${roomId}`;
-    username = localStorage.getItem('username');
-    if (!username) {
-      username = prompt('Enter your username:');
-      if (!username?.trim()) {
-        location.href = '/';
-        return;
-      }
-      localStorage.setItem('username', username.trim());
-    } else {
-      username = username.trim();
-    }
-    connectSocket();
-    initChat();
-  } else {
-    initLanding();
-  }
-}
-
-function initLanding() {
-  const usernameInput = document.getElementById('username');
-  const createBtn = document.getElementById('create-btn');
-  const joinBtn = document.getElementById('join-btn');
-  const joinForm = document.getElementById('join-form');
-  const roomCode = document.getElementById('room-code');
-  const enterBtn = document.getElementById('enter-room');
-
-  createBtn.onclick = async () => {
-    username = usernameInput.value.trim();
-    if (!username) return alert('Please enter a username');
-    localStorage.setItem('username', username);
-    try {
-      const res = await fetch(`${backendURL}/create-room`);
-      if (!res.ok) throw new Error('Failed to create room');
-      const { id } = await res.json();
-      location.href = `/room/${id}`;
-    } catch (err) {
-      alert('Error creating room: ' + err.message);
-    }
-  };
-
-  joinBtn.onclick = () => {
-    joinForm.classList.toggle('hidden');
-  };
-
-  enterBtn.onclick = () => {
-    username = usernameInput.value.trim();
-    if (!username) return alert('Please enter a username');
-    const code = roomCode.value.trim();
-    if (!code) return alert('Please enter room code');
-    localStorage.setItem('username', username);
-    location.href = `/room/${code}`;
-  };
-}
-
 function initChat() {
   const form = document.getElementById('message-form');
   const input = document.getElementById('message-input');
@@ -142,7 +80,7 @@ function initChat() {
         isTyping = false;
         socket.emit('typing', false);
       }
-    }, 3000);
+    }, 3000); // Debounce stop typing
   });
 
   form.onsubmit = (e) => {
@@ -184,6 +122,68 @@ function appendMessage(text, isSystem) {
   const msgs = document.getElementById('messages');
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
+}
+
+function initLanding() {
+  const usernameInput = document.getElementById('username');
+  const createBtn = document.getElementById('create-btn');
+  const joinBtn = document.getElementById('join-btn');
+  const joinForm = document.getElementById('join-form');
+  const roomCode = document.getElementById('room-code');
+  const enterBtn = document.getElementById('enter-room');
+
+  createBtn.onclick = async () => {
+    username = usernameInput.value.trim();
+    if (!username) return alert('Please enter a username');
+    localStorage.setItem('username', username);
+    try {
+      const res = await fetch(`${backendURL}/create-room`);
+      if (!res.ok) throw new Error('Failed to create room');
+      const { id } = await res.json();
+      location.href = `/room/${id}`;
+    } catch (err) {
+      alert('Error creating room: ' + err.message);
+    }
+  };
+
+  joinBtn.onclick = () => {
+    joinForm.classList.toggle('hidden');
+  };
+
+  enterBtn.onclick = () => {
+    username = usernameInput.value.trim();
+    if (!username) return alert('Please enter a username');
+    const code = roomCode.value.trim();
+    if (!code) return alert('Please enter room code');
+    localStorage.setItem('username', username);
+    location.href = `/room/${code}`;
+  };
+}
+
+function init() {
+  const path = location.pathname;
+  if (path.startsWith('/room/')) {
+    roomId = path.split('/room/')[1].split('/')[0];
+    document.getElementById('landing').classList.add('hidden');
+    document.getElementById('chat').classList.remove('hidden');
+    document.getElementById('room-title').textContent = `Room: ${roomId}`;
+    document.getElementById('room-code-display').textContent = `Code: ${roomId}`;
+    username = localStorage.getItem('username');
+    if (!username) {
+      username = prompt('Enter your username:');
+      if (!username?.trim()) {
+        location.href = '/';
+        return;
+      }
+      localStorage.setItem('username', username.trim());
+    } else {
+      username = username.trim();
+    }
+    connectSocket();
+    initChat();
+  } else {
+    initLanding();
+  }
 }
 
 init();
