@@ -76,6 +76,7 @@ function initSocket(io) {
         if (!room.rateLimits.has(socket.id)) room.rateLimits.set(socket.id, []);
         const now = Date.now();
         const recent = room.rateLimits.get(socket.id).filter((ts) => now - ts < 3000);
+        room.rateLimits.set(socket.id, recent); // Clean up old timestamps
         if (recent.length >= 5) return;
         recent.push(now);
         room.rateLimits.set(socket.id, recent);
@@ -95,7 +96,13 @@ function initSocket(io) {
     socket.on('typing', (isTyping) => {
       try {
         if (!currentRoom) return;
-        io.to(currentRoom).emit('typing', { username: currentUsername, isAsync: true });
+        const room = rooms.get(currentRoom);
+        if (isTyping) {
+          room.typing.add(currentUsername);
+        } else {
+          room.typing.delete(currentUsername);
+        }
+        io.to(currentRoom).emit('typing', { users: Array.from(room.typing) });
       } catch (err) {
         console.error('Typing error:', err.message);
       }
@@ -116,10 +123,16 @@ function initSocket(io) {
           const usersList = Array.from(room.users.values()).map((u) => u.username);
           io.to(currentRoom).emit('room-state', { users: usersList });
           io.to(currentRoom).emit('typing', { users: Array.from(room.typing) });
-        }
-        if (room.users.size === 0) {
-          rooms.delete(currentRoom);
-          console.log(`Room ${currentRoom} deleted`);
+
+          // Delay room deletion to allow reconnection
+          if (room.users.size === 0) {
+            setTimeout(() => {
+              if (rooms.has(currentRoom) && rooms.get(currentRoom).users.size === 0) {
+                rooms.delete(currentRoom);
+                console.log(`Room ${currentRoom} deleted`);
+              }
+            }, 10000); // 10-second delay
+          }
         }
       } catch (err) {
         console.error('Disconnect error:', err.message);

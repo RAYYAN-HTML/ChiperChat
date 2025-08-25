@@ -1,6 +1,7 @@
 // server/utils.js
+const { nanoid } = require('nanoid');
+
 async function generateId(length = 8) {
-  const { nanoid } = await import('nanoid');
   return nanoid(length);
 }
 
