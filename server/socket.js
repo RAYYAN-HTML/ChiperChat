@@ -1,22 +1,19 @@
-// server/socket.js
 const { sanitize, generateId } = require('./utils');
-
-// Initialize rooms directly (no external file needed)
-const rooms = new Map();
+const rooms = require('./rooms'); // shared rooms map
 
 function initSocket(io) {
   io.on('connection', (socket) => {
     console.log('New connection:', socket.id);
+
     socket.on('error', (err) => console.error('Socket error:', err));
+
     let currentRoom = null;
     let currentUsername = null;
 
     socket.on('join-room', ({ roomId, username }) => {
       try {
         if (!roomId || !username) throw new Error('Invalid roomId or username');
-        if (currentRoom) {
-          socket.leave(currentRoom);
-        }
+        if (currentRoom) socket.leave(currentRoom);
 
         if (!rooms.has(roomId)) {
           rooms.set(roomId, {
@@ -45,10 +42,7 @@ function initSocket(io) {
         }
 
         if (username !== origUsername) {
-          socket.emit('username-changed', {
-            newUsername: username,
-            reason: 'clash',
-          });
+          socket.emit('username-changed', { newUsername: username, reason: 'clash' });
         }
 
         currentUsername = username;
@@ -56,9 +50,7 @@ function initSocket(io) {
         socket.join(roomId);
         room.users.set(socket.id, { username });
 
-        io.to(roomId).emit('system-message', {
-          text: `${username} has joined`,
-        });
+        io.to(roomId).emit('system-message', { text: `${username} has joined` });
 
         const usersList = Array.from(room.users.values()).map((u) => u.username);
         io.to(roomId).emit('room-state', { users: usersList });
@@ -76,23 +68,23 @@ function initSocket(io) {
 
         const room = rooms.get(currentRoom);
         const now = Date.now();
-        
+
         if (!room.rateLimits.has(socket.id)) {
           room.rateLimits.set(socket.id, []);
         }
-        
+
         const recentMessages = room.rateLimits.get(socket.id).filter(
           ts => now - ts < 3000
         );
-        
+
         if (recentMessages.length >= 5) {
           socket.emit('system-message', { text: 'Rate limit exceeded. Please wait.' });
           return;
         }
-        
+
         recentMessages.push(now);
         room.rateLimits.set(socket.id, recentMessages);
-        
+
         const msg = {
           id: await generateId(),
           username: currentUsername,
@@ -109,17 +101,14 @@ function initSocket(io) {
       try {
         if (!currentRoom) return;
         const room = rooms.get(currentRoom);
-        
-        if (isTyping) {
-          room.typing.add(currentUsername);
-        } else {
-          room.typing.delete(currentUsername);
-        }
-        
-        io.to(currentRoom).emit('typing', { 
+
+        if (isTyping) room.typing.add(currentUsername);
+        else room.typing.delete(currentUsername);
+
+        io.to(currentRoom).emit('typing', {
           users: Array.from(room.typing),
           username: currentUsername,
-          isTyping: isTyping
+          isTyping
         });
       } catch (err) {
         console.error('Typing error:', err.message);

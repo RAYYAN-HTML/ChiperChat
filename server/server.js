@@ -1,4 +1,3 @@
-// server/server.js
 require('dotenv').config();
 const express = require('express');
 const app = express();
@@ -15,13 +14,11 @@ const io = require('socket.io')(http, {
 const cors = require('cors');
 const { generateId } = require('./utils');
 const initSocket = require('./socket');
+const rooms = require('./rooms'); // shared rooms map
 
-// Initialize rooms directly (no external file needed)
-const rooms = new Map();
-
-app.use(cors({ 
+app.use(cors({
   origin: 'https://chiperchat.netlify.app',
-  credentials: true 
+  credentials: true
 }));
 app.use(express.json());
 
@@ -40,8 +37,7 @@ app.get('/create-room', async (req, res) => {
 });
 
 app.get('/validate-room/:roomId', (req, res) => {
-  const roomId = req.params.roomId;
-  res.json({ exists: rooms.has(roomId) });
+  res.json({ exists: rooms.has(req.params.roomId) });
 });
 
 const PORT = process.env.PORT || 3001;
