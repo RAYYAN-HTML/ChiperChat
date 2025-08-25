@@ -1,19 +1,22 @@
+// server/server.js
 require('dotenv').config();
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http, {
   cors: {
-    origin: '*', // Allow all for simplicity; restrict in prod if needed
-  }
+    origin: '*', // Update to your frontend URL in production
+    methods: ['GET', 'POST']
+  },
+  transports: ['polling'], // Force HTTP polling for Vercel
+  allowEIO3: true // Support Socket.io client compatibility
 });
 const cors = require('cors');
 const { generateId } = require('./utils');
 const initSocket = require('./socket');
 
-app.use(cors({
-  origin: '*' // Allow all for dev; configure for prod static host
-}));
+app.use(cors({ origin: '*' }));
+app.use(express.json()); // For serverless HTTP requests
 
 initSocket(io);
 
@@ -24,5 +27,5 @@ app.get('/create-room', (req, res) => {
   res.json({ id });
 });
 
-const port = process.env.PORT || 3000;
-http.listen(port, () => console.log(`Server running on port ${port}`));
+// Export for Vercel serverless
+module.exports = app;

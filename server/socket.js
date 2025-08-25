@@ -1,8 +1,9 @@
 const rooms = require('./rooms');
 const { sanitize } = require('./utils');
-
 function initSocket(io) {
   io.on('connection', (socket) => {
+    console.log('New connection:', socket.id);
+    socket.on('error', (err) => console.error('Socket error:', err));
     let currentRoom = null;
     let currentUsername = null;
 
