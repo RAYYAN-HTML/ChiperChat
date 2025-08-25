@@ -1,4 +1,3 @@
-// server/utils.js
 const { nanoid } = require('nanoid');
 
 async function generateId(length = 8) {
