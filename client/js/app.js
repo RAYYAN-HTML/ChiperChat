@@ -1,6 +1,4 @@
-const backendURL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') 
-  ? 'http://localhost:3000' 
-  : 'https://chiper-chat.vercel.app';
+const backendURL = 'https://chiper-chat.vercel.app';
 
 let socket;
 let roomId;
@@ -146,6 +144,17 @@ function appendMessage(text, isSystem) {
   msgs.scrollTop = msgs.scrollHeight;
 }
 
+async function validateRoom(roomId) {
+  try {
+    const response = await fetch(`${backendURL}/validate-room/${roomId}`);
+    const data = await response.json();
+    return data.exists;
+  } catch (error) {
+    console.error('Room validation failed:', error);
+    return false;
+  }
+}
+
 function initLanding() {
   const usernameInput = document.getElementById('username');
   const createBtn = document.getElementById('create-btn');
@@ -165,10 +174,15 @@ function initLanding() {
     localStorage.setItem('username', username);
     try {
       const res = await fetch(`${backendURL}/create-room`);
-      if (!res.ok) throw new Error('Failed to create room');
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Server error: ${res.status} - ${errorText}`);
+      }
       const { id } = await res.json();
+      if (!id) throw new Error('No room ID returned from server');
       location.href = `/room/${id}`;
     } catch (err) {
+      console.error('Create room error:', err);
       alert('Error creating room: ' + err.message);
     }
   };
@@ -177,11 +191,19 @@ function initLanding() {
     joinForm.classList.toggle('hidden');
   };
 
-  enterBtn.onclick = () => {
+  enterBtn.onclick = async () => {
     username = usernameInput.value.trim();
     if (!username) return alert('Please enter a username');
     const code = roomCode.value.trim();
     if (!code) return alert('Please enter room code');
+    
+    // Validate room exists before redirecting
+    const roomExists = await validateRoom(code);
+    if (!roomExists) {
+      alert('Room does not exist or is invalid');
+      return;
+    }
+    
     localStorage.setItem('username', username);
     location.href = `/room/${code}`;
   };

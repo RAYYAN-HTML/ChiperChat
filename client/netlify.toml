@@ -1,0 +1,31 @@
+[build]
+  publish = "."
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://chiper-chat.vercel.app/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/create-room"
+  to = "https://chiper-chat.vercel.app/create-room"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/health"
+  to = "https://chiper-chat.vercel.app/health"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/validate-room/*"
+  to = "https://chiper-chat.vercel.app/validate-room/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
