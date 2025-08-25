@@ -1,5 +1,7 @@
 // server/socket.js
-const rooms = require('./rooms');
+// Replace rooms import with direct initialization
+const rooms = new Map();
+
 const { sanitize, generateId } = require('./utils');
 
 function initSocket(io) {
