@@ -73,13 +73,27 @@ function initSocket(io) {
         if (!text || text.length > 500) throw new Error('Invalid message');
 
         const room = rooms.get(currentRoom);
-        if (!room.rateLimits.has(socket.id)) room.rateLimits.set(socket.id, []);
         const now = Date.now();
-        const recent = room.rateLimits.get(socket.id).filter((ts) => now - ts < 3000);
-        if (recent.length >= 5) return;
-        recent.push(now);
-        room.rateLimits.set(socket.id, recent);
-
+        
+        // Initialize if not exists
+        if (!room.rateLimits.has(socket.id)) {
+          room.rateLimits.set(socket.id, []);
+        }
+        
+        // Clean old timestamps and check rate limit
+        const recentMessages = room.rateLimits.get(socket.id).filter(
+          ts => now - ts < 3000
+        );
+        
+        if (recentMessages.length >= 5) {
+          socket.emit('system-message', { text: 'Rate limit exceeded. Please wait.' });
+          return;
+        }
+        
+        // Add current timestamp
+        recentMessages.push(now);
+        room.rateLimits.set(socket.id, recentMessages);
+        
         const msg = {
           id: await generateId(),
           username: currentUsername,
@@ -95,7 +109,19 @@ function initSocket(io) {
     socket.on('typing', (isTyping) => {
       try {
         if (!currentRoom) return;
-        io.to(currentRoom).emit('typing', { username: currentUsername, isAsync: true });
+        const room = rooms.get(currentRoom);
+        
+        if (isTyping) {
+          room.typing.add(currentUsername);
+        } else {
+          room.typing.delete(currentUsername);
+        }
+        
+        io.to(currentRoom).emit('typing', { 
+          users: Array.from(room.typing),
+          username: currentUsername,
+          isTyping: isTyping
+        });
       } catch (err) {
         console.error('Typing error:', err.message);
       }
