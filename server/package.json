@@ -18,5 +18,9 @@
   },
   "engines": {
     "node": "18.x"
-  }
+  },
+  "files": [
+    "server/*.js",
+    "server.js"
+  ]
 }
