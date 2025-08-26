@@ -12,8 +12,14 @@ const io = require('socket.io')(http, {
   allowEIO3: true
 });
 const cors = require('cors');
-const { generateId } = require('./utils');
-const initSocket = require('./socket');
+const path = require('path');
+
+// Use absolute paths for your local modules
+const utilsPath = path.join(__dirname, 'utils.js');
+const { generateId } = require(utilsPath);
+
+const socketPath = path.join(__dirname, 'socket.js');
+const initSocket = require(socketPath);
 
 app.use(cors({
   origin: ['https://chiperchat.netlify.app', 'http://localhost:3000']
@@ -26,7 +32,7 @@ app.get('/health', (req, res) => res.json({ ok: true }));
 
 app.get('/create-room', async (req, res) => {
   try {
-    const id = await generateId();
+    const id = generateId();
     res.json({ id });
   } catch (err) {
     console.error('Create-room error:', err);

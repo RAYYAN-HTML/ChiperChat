@@ -1,5 +1,6 @@
-const rooms = require('./rooms'); // Correct path for rooms.js in server/ directory
-const { sanitize, generateId } = require('./utils');
+const path = require('path');
+const rooms = require(path.join(__dirname, 'rooms.js'));
+const { sanitize, generateId } = require(path.join(__dirname, 'utils.js'));
 
 function initSocket(io) {
   io.on('connection', (socket) => {
@@ -81,7 +82,7 @@ function initSocket(io) {
         room.rateLimits.set(socket.id, recent);
 
         const msg = {
-          id: await generateId(),
+          id: generateId(),
           username: currentUsername,
           text,
           ts: now,
