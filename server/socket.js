@@ -1,6 +1,6 @@
 const path = require('path');
-const rooms = require(path.join(__dirname, 'rooms.js'));
-const { sanitize, generateId } = require(path.join(__dirname, 'utils.js'));
+const rooms = require('./rooms.js'); 
+const { sanitize, generateId } = require('./utils.js'); 
 
 function initSocket(io) {
   io.on('connection', (socket) => {
