@@ -1,6 +1,6 @@
 const { nanoid } = require('nanoid');
 
-async function generateId(length = 8) {
+function generateId(length = 8) {
   return nanoid(length);
 }
 
